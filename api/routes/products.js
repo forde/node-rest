@@ -5,15 +5,26 @@ const router = express.Router();
 // we don't ned to specify the '/products' path here (we are already in /products if this file is in use)
 // '/' === '/products/'
 
+// product model
+const mongoose = require('mongoose');
+const Product = require('./../models/product');
+
 /*
 |--------------------------------------------------------------------------
 | Get all products
 |--------------------------------------------------------------------------
 */
 router.get('/', (req, resp, next) => {
-    resp.status(200).json({
-        message: 'Listing all products: GET request to /products'
-    });
+    Product.find()
+        .exec()
+        .then(result => {
+            resp.status(200).json(result);
+        })
+        .catch(error => {
+            resp.status(500).json({
+                error: error
+            });
+        });
 });
 
 /*
@@ -22,14 +33,22 @@ router.get('/', (req, resp, next) => {
 |--------------------------------------------------------------------------
 */
 router.post('/', (req, resp, next) => {
-    const product = {
+    // create new instance of Product model
+    const product = new Product({
+        _id: new mongoose.Types.ObjectId(),
         name: req.body.name, // req.body is available when we are using body-parser middleware
         price: req.body.price
-    };
-    resp.status(200).json({
-        message: 'Creating new product: POST request to /products',
-        product: product
     });
+    // save the ne product to DB
+    product.save()
+        .then(result => {
+            resp.status(200).json(result);
+        })
+        .catch(error => {
+            resp.status(500).json({
+                error: error
+            });
+        });
 });
 
 /*
@@ -39,9 +58,22 @@ router.post('/', (req, resp, next) => {
 */
 router.get('/:id', (req, resp, next) => {
     const id = req.params.id;
-    resp.status(200).json({
-        message: 'Geting single product info: GET request to /products/'+id
-    });
+    Product.findById(id)
+        .exec()
+        .then(result => {
+            if(result) {
+                resp.status(200).json(result);
+            } else {
+                resp.status(404).json({
+                    error: 'No valid entry found for provided ID'
+                });
+            }
+        })
+        .catch(error => {
+            resp.status(500).json({
+                error: error
+            });
+        });
 });
 
 /*
@@ -50,10 +82,20 @@ router.get('/:id', (req, resp, next) => {
 |--------------------------------------------------------------------------
 */
 router.patch('/:id', (req, resp, next) => {
-    const id = req.params.id;
-    resp.status(200).json({
-        message: 'Updating product information: PATCH request to /products/'+id
-    });
+    const values = {
+        name: req.body.name,
+        price: req.body.price
+    };
+    Product.update({ _id: req.params.id }, { $set: values })
+        .exec()
+        .then(response => {
+            resp.status(200).json(result);
+        })
+        .catch(error => {
+            resp.status(500).json({
+                error: error
+            });
+        });
 });
 
 /*
@@ -62,10 +104,16 @@ router.patch('/:id', (req, resp, next) => {
 |--------------------------------------------------------------------------
 */
 router.delete('/:id', (req, resp, next) => {
-    const id = req.params.id;
-    resp.status(200).json({
-        message: 'Deleting product: DELETE request to /products/'+id
-    });
+    Product.remove({ _id: req.params.id })
+        .exec()
+        .then(result => {
+            resp.status(200).json(result);
+        })
+        .catch(error => {
+            resp.status(500).json({
+                error: error
+            });
+        });
 });
 
 module.exports = router;

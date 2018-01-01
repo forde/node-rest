@@ -5,6 +5,21 @@ const bodyParser = require('body-parser');
 
 /*
 |--------------------------------------------------------------------------
+| Database connection
+|--------------------------------------------------------------------------
+*/
+
+const mongoose = require('mongoose');
+// development env. variables are set in nodemon.json
+// UI @ https://cloud.mongodb.com/v2/5a4a8a71c0c6e34ee7f67aa9#clusters
+const dbUrl = 'mongodb://' + process.env.MONGO_ATLAS_DB_USER + ':' + process.env.MONGO_ATLAS_DB_PASS + process.env.MONGO_ATLAS_DB_URI;
+mongoose.connect(dbUrl, {
+    useMongoClient: true // required when using mongo v.4
+});
+
+
+/*
+|--------------------------------------------------------------------------
 | App middlewares
 |--------------------------------------------------------------------------
 */
@@ -24,7 +39,7 @@ app.use((req, resp, next) => {
     resp.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
     
     // responding to browser preflight request
-    // when sending POST or PUT request browser will always send OPTIONS request first to chek initial request can be made
+    // when sending POST or PUT request browser will always send OPTIONS request first to chek if initial request can be made
     if(req.method === 'OPTIONS') {
         // tell browser we are supporting these request methods
         resp.header('Access-Control-Allow-Methods', 'GET, PUT, POST, DELETE, PATCH')
@@ -59,10 +74,10 @@ app.use('/orders', orderRoutes);
 // HTTP error handeling
 // if we reached this route handeler it means that no previusly declared route handeler was able to handle the request
 app.use((req, resp, next) => {
-    // this will catch any unsuported http requests and set error starus
+    // this will catch any unsuported URLs and set error starus
     const error = new Error('Not found');
     error.status = 404;
-    // we are not returning an error here - we do it in next middleware that will handle all errors (http errors, database errors etc.)
+    // we are not returning an error here (we only set the error and pass it further) - we do it in next middleware that will handle all errors (http errors, database errors etc.)
     next(error);
 });
 

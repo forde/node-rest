@@ -1,0 +1,8 @@
+{
+    "env": {
+        "PORT": 3000,
+        "MONGO_ATLAS_DB_URI": "@cluster0-shard-00-00-ti8zz.mongodb.net:27017,cluster0-shard-00-01-ti8zz.mongodb.net:27017,cluster0-shard-00-02-ti8zz.mongodb.net:27017/test?ssl=true&replicaSet=Cluster0-shard-0&authSource=admin",
+        "MONGO_ATLAS_DB_USER": "admin",
+        "MONGO_ATLAS_DB_PASS": "test1234" 
+    }
+}
