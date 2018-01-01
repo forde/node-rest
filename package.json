@@ -15,5 +15,9 @@
   "bugs": {
     "url": "https://github.com/forde/node-rest/issues"
   },
-  "homepage": "https://github.com/forde/node-rest#readme"
+  "homepage": "https://github.com/forde/node-rest#readme",
+  "dependencies": {
+    "express": "^4.16.2",
+    "jest": "^22.0.4"
+  }
 }
