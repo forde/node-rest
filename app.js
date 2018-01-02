@@ -50,6 +50,9 @@ app.use((req, resp, next) => {
     next();
 });
 
+// make 'uploads' folder publicly available
+app.use('/uploads', express.static('uploads'));
+
 
 /*
 |--------------------------------------------------------------------------
@@ -64,6 +67,9 @@ app.use('/products', productRoutes);
 
 const orderRoutes = require('./api/routes/orders');
 app.use('/orders', orderRoutes);
+
+const userRoutes = require('./api/routes/user');
+app.use('/user', userRoutes);
 
 /*
 |--------------------------------------------------------------------------

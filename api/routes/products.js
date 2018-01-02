@@ -19,7 +19,7 @@ router.get('/', Product._list);
 | Create product
 |--------------------------------------------------------------------------
 */
-router.post('/', Product._create);
+router.post('/', Product._storeFile, Product._create);
 
 /*
 |--------------------------------------------------------------------------

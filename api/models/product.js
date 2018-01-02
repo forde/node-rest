@@ -1,12 +1,50 @@
 const mongoose = require('mongoose');
 
+/*
+|--------------------------------------------------------------------------
+| Product schema
+|--------------------------------------------------------------------------
+*/
 const productSchema = mongoose.Schema({
     _id: mongoose.Schema.Types.ObjectId,
     name: { type: String, required: true },
-    price: { type: Number, required: true }
+    price: { type: Number, required: true },
+    image: { type: String, require: true }
 });
-
 const Product = mongoose.model('Product', productSchema);
+
+/*
+|--------------------------------------------------------------------------
+| File storage & upload handler config
+|--------------------------------------------------------------------------
+*/
+const multer = require('multer'); 
+
+const fileStorage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, './uploads/');
+    },
+    filename: (req, file, cb) => {
+        cb(null, Date.now() +'-'+ file.originalname);
+    }
+});
+const fileFilter = (req, file, cb) => {
+    if(file.mimetype === 'image/jpeg' || file.mimetype === 'image/png') {
+        cb(null, true); // accept the file
+    } else {
+        cb(new Error('File type not suported'), false); // reject file
+    }
+}
+const upload = multer({
+    storage: fileStorage,
+    limits: {
+        fileSize: 1024 * 1024 * 10 //10MB
+    },
+    fileFilter: fileFilter
+});
+// this method will be used as middleware on route thta accepts files
+// Note: this middleware must be used BEFORE function that handles the request
+Product._storeFile = upload.single('image');
 
 
 /*
@@ -33,11 +71,15 @@ Product._list = (req, resp, next) => {
 |--------------------------------------------------------------------------
 */
 Product._create = (req, resp, next) => {
+    // when we use multer middleware before this executes we have access to req.file
+    // in addition we also can send and use FormData at this point (body-parser alone does not support parsing FormData)
+    console.log(req.file)
     // create new instance of Product model
     const product = new Product({
         _id: new mongoose.Types.ObjectId(),
         name: req.body.name, // req.body is available when we are using body-parser middleware
-        price: req.body.price
+        price: req.body.price,
+        image: req.file.path,
     });
     // save the ne product to DB
     // NOTE: save() returns promise by default so we don't need exec() !!!
