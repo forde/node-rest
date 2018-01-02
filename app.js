@@ -14,7 +14,7 @@ const mongoose = require('mongoose');
 // UI @ https://cloud.mongodb.com/v2/5a4a8a71c0c6e34ee7f67aa9#clusters
 const dbUrl = 'mongodb://' + process.env.MONGO_ATLAS_DB_USER + ':' + process.env.MONGO_ATLAS_DB_PASS + process.env.MONGO_ATLAS_DB_URI;
 mongoose.connect(dbUrl, {
-    useMongoClient: true // required when using mongo v.4
+    //useMongoClient: true // required when using mongo v.4
 });
 
 

@@ -1,22 +1,25 @@
 const mongoose = require('mongoose');
 
-const productSchema = mongoose.Schema({
+const Product = require('./../models/product'); 
+
+const orderSchema = mongoose.Schema({
     _id: mongoose.Schema.Types.ObjectId,
-    name: { type: String, required: true },
-    price: { type: Number, required: true }
+    product: { type: mongoose.Schema.Types.ObjectId, ref: 'Product'}, // create relation
+    quantity: { type: Number, default: 1 },
 });
 
-const Product = mongoose.model('Product', productSchema);
+const Order = mongoose.model('Order', orderSchema);
 
 
 /*
 |--------------------------------------------------------------------------
-| List all products
+| List all orders
 |--------------------------------------------------------------------------
 */
-Product._list = (req, resp, next) => {
-    Product.find()
-        .exec() // exec() turns our request into a promise
+Order._list = (req, resp, next) => {
+    Order.find()
+        .populate('product', 'name _id, price') // include product information to order response
+        .exec()
         .then(result => {
             resp.status(200).json(result);
         })
@@ -29,19 +32,26 @@ Product._list = (req, resp, next) => {
 
 /*
 |--------------------------------------------------------------------------
-| Create product
+| Create order
 |--------------------------------------------------------------------------
 */
-Product._create = (req, resp, next) => {
-    // create new instance of Product model
-    const product = new Product({
-        _id: new mongoose.Types.ObjectId(),
-        name: req.body.name, // req.body is available when we are using body-parser middleware
-        price: req.body.price
-    });
-    // save the ne product to DB
-    // NOTE: save() returns promise by default so we don't need exec() !!!
-    product.save() 
+Order._create = (req, resp, next) => {
+    // check if product exists before saving the order
+    Product.findById(req.body.product)
+        .then(product => {
+            // return with an error if product does not exist
+            if(!product) {
+                return resp.status(500).json({
+                    error: 'Product does not exist'
+                });
+            }
+            const order = new Order({
+                _id: new mongoose.Types.ObjectId(),
+                product: req.body.product,
+                quantity: req.body.quantity
+            });
+            return order.save(); // return a promise so we can keep chaining (add another then())
+        })
         .then(result => {
             resp.status(200).json(result);
         })
@@ -54,12 +64,13 @@ Product._create = (req, resp, next) => {
 
 /*
 |--------------------------------------------------------------------------
-| Get single product
+| Get single order
 |--------------------------------------------------------------------------
 */
-Product._get = (req, resp, next) => {
+Order._get = (req, resp, next) => {
     const id = req.params.id;
-    Product.findById(id)
+    Order.findById(id)
+        .populate('product')
         .exec()
         .then(result => {
             if(result) {
@@ -77,36 +88,14 @@ Product._get = (req, resp, next) => {
         });
 }
 
-/*
-|--------------------------------------------------------------------------
-| Update single product
-|--------------------------------------------------------------------------
-*/
-Product._update = (req, resp, next) => {
-    const values = {
-        name: req.body.name,
-        price: req.body.price
-    };
-    Product.update({ _id: req.params.id }, { $set: values })
-        .exec()
-        .then(result => {
-            resp.status(200).json(result);
-        })
-        .catch(error => {
-            console.log(error);
-            resp.status(500).json({
-                error: error
-            });
-        });
-}
 
 /*
 |--------------------------------------------------------------------------
-| Delete product
+| Delete order
 |--------------------------------------------------------------------------
 */
-Product._delete = (req, resp, next) => {
-    Product.remove({ _id: req.params.id })
+Order._delete = (req, resp, next) => {
+    Order.remove({ _id: req.params.id })
         .exec()
         .then(result => {
             resp.status(200).json(result);
@@ -118,4 +107,4 @@ Product._delete = (req, resp, next) => {
         });
 }
 
-module.exports = Product;
+module.exports = Order;
